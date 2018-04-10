@@ -93,7 +93,7 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        player.update();
+        player.update(dt,allEnemies);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -162,6 +162,27 @@ var Engine = (function(global) {
      */
     function reset() {
         // noop
+    }
+
+    /**
+      * Checks whether two 2D rectangles are colliding.
+      * This function can check if the X axis of the two objects is colliding and then if the axis Y is colliding.
+    */
+    function rectangleOverlap(r1,r2) {
+     return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.height + r1.y > r2.y;
+    }
+
+    /**
+      * Checks if all 2D rectangles of the game are colliding.
+    */
+    function checkCollisions(){
+      for(i=0;i<allEnemies.length;i++){
+        if(rectangleOverlap(allEnemies[i],player)){
+          audioShut.play();
+          player.resetPosition();
+          allEnemies[i].speed = 500;
+        }
+      }
     }
 
     /* Go ahead and load all of the images we know we're going to need to

@@ -20,9 +20,9 @@ const playerWidth = 80;
 const startPosition = [200,400];
 
 const audioShut = new Audio('./sounds/shutdown.wav');
-const audioWin = new Audio('./sounds/win.wav');
+const audiovictory = new Audio('./sounds/win.wav');
 
-let win = false;
+let victory = false;
 /**
   * Superclass that includes the general parameters and methods of entities "player" and "enemy"
 */
@@ -53,15 +53,30 @@ class Player extends Entity{
   /**
     *  Code executed at each moment of time by the player object
   */
-  update(dt) {
-    checkVictory();
+  update(dt,enemies) {
+    let that = this; //saving reference of 'this': setTimeout executes the function with 'this' pointing to the global object
+
+    //Check if the player has reached the end of the course
+    if(this.y < layers[3]){
+      audiovictory.play();
+      victory = true;
+      setTimeout(function() {
+        for(i;i<enemies.length;i++){
+          enemies[i].speed = 200;
+        }
+        that.resetPosition();
+      },1000);
+    }
+    else{
+      victory = false;
+    }
   }
 
   /**
     *  Handle the input of player data to the game
   */
   handleInput(key) {
-    if(!win){
+    if(!victory){
       switch(key){
         case 'left':{
           if(this.x >= minX){
@@ -90,6 +105,16 @@ class Player extends Entity{
       }
     }
   }
+
+  /**
+    *  Moves the player to the standard position
+  */
+  resetPosition(){
+    victory = false;
+    this.x = startPosition[0];
+    this.y = startPosition[1];
+  }
+
 }
 
 // Enemies our player must avoid
@@ -104,7 +129,7 @@ class Enemy extends Entity{
   // Parameter: dt, a time delta between ticks
   update(dt) {
 
-    if(win){
+    if(victory){
       this.speed = 1000;
     }
     //handle the direction of the bugs (right or left)
@@ -126,54 +151,15 @@ class Enemy extends Entity{
 }
 
 /**
-  * Checks whether two 2D rectangles are colliding.
-  * This function can check if the X axis of the two objects is colliding and then if the axis Y is colliding.
-*/
-function rectangleOverlap(r1,r2) {
- return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.height + r1.y > r2.y;
-}
-
-/**
-  * Checks if all 2D rectangles of the game are colliding.
-*/
-function checkCollisions(){
-  for(i=0;i<allEnemies.length;i++){
-    if(rectangleOverlap(allEnemies[i],player)){
-      audioShut.play();
-      restartGame();
-      allEnemies[i].speed = 500;
-    }
-  }
-}
-
-/**
   * Set of actions that should happen when the game is restarted.
 */
 function restartGame(){
-  win = false;
+  victory = false;
   player.x = startPosition[0];
   player.y = startPosition[1];
 }
 
-/**
-  * Check if the player has reached the end of the course
-*/
-function checkVictory(){
-  if(player.y < layers[3]){
-    audioWin.play();
-    win = true;
-    setTimeout(function() {
-      for(i;i<allEnemies.length;i++){
-        allEnemies[i].speed = 200;
-      }
 
-      restartGame();
-    },1000);
-  }
-  else{
-    win = false;
-  }
-}
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
